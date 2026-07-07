@@ -1,26 +1,32 @@
+import { RateLimiterStore } from "../store/RateLimiterStore";
+import { RedisStore } from "../store/redisStore";
 import {RateLimiterStrategy} from "./RateLimiterStrategy";
 
 export  class TokenBucketLimiter implements RateLimiterStrategy {
 
-    private readonly capacity : number;
-    private readonly refillRatePerSecond : number;
+   
 
-    constructor (capacity:number, refillRate: number){
-         this.capacity=capacity;
-         this.refillRatePerSecond=refillRate;
-    }
+    constructor (
+        private readonly capacity: number,
+        private readonly refillRatePerSecond : number,
+        private readonly store : RateLimiterStore,
+    ){}
 
      async isAllowed(identifier: string): 
      Promise<{ 
         allowed: boolean; 
         retryAterMs?: Number; 
     }> {
+        return await this.store.executeTokenBucket(
+            identifier,
+            this.capacity,
+            this.refillRatePerSecond
+        )
+
         
-        return {
-            allowed:true
-        }
-    }
 
 
+
+}
 
 }

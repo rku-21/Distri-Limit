@@ -3,6 +3,6 @@ export interface RateLimiterStrategy {
     (identifier: string):
     Promise<{
         allowed:boolean;
-        retryAterMs?:Number;
+        retryAfterMs?:Number;
     }>
 }
