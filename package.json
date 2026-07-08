@@ -1,17 +1,28 @@
 {
   "name": "distrilimit",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "1.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.ts"
+    "build": "tsc && node scripts/copy-lua-files.js",
+    "dev": "ts-node-dev src/server.ts",
+    "benchmark": "ts-node-dev src/Benchmark/benchmark.ts",
+    "benchmark:behavior": "ts-node-dev src/Benchmark/rateLimitBehaviorBenchmark.ts",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Rahul Kumar Upadhyay",
+  "license": "MIT",
   "description": "",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@types/express": "^5.0.6",
+    "distrilimit": "^1.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "ioredis": "^5.11.1",

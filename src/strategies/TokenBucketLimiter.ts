@@ -1,11 +1,7 @@
 import { RateLimiterStore } from "../store/RateLimiterStore";
-import { RedisStore } from "../store/redisStore";
 import {RateLimiterStrategy} from "./RateLimiterStrategy";
 
 export  class TokenBucketLimiter implements RateLimiterStrategy {
-
-   
-
     constructor (
         private readonly capacity: number,
         private readonly refillRatePerSecond : number,

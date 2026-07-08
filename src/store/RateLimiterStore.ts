@@ -12,7 +12,26 @@ export interface RateLimiterStore {
     getBucket(identifier:string) : Promise<Bucket | null>;
     saveBucket(identifier:string,bucket:Bucket) : Promise<void>;
     deleteBucket(identifier:string) : Promise<void>;
-    
+
+    executeSlidingWindow (
+        identifier:string,
+        maxRequests:number,
+        windowSizeMs:number,
+    ): Promise<{
+        allowed:boolean,
+        retryAfterMs? : number,
+    }>
+
+
+    executeSlidingWindowCounter (
+        identifier:string ,
+        maxRequests:number,
+        windowSizeMs:number,
+    ): Promise<{
+        allowed:boolean,
+        retryAfterMs? :number,
+    }>
+
 
 
 }

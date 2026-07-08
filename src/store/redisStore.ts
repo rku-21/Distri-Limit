@@ -10,6 +10,8 @@ export class RedisStore implements RateLimiterStore {
 
     private readonly redis : Redis;
     private readonly tokenBucketLua : string;
+    private readonly slidingWindowLogLua : string;
+    private readonly slidingWindowCounterLua : string;
 
     constructor(host : string ,port :number){
         this.redis=new Redis({
@@ -22,14 +24,22 @@ export class RedisStore implements RateLimiterStore {
             path.join(__dirname,"../scripts/token_bucket.lua"),
             "utf-8",
          )
+         this.slidingWindowLogLua=fs.readFileSync(
+            path.join(__dirname, "../scripts/sliding_window_log.lua"),
+            "utf-8",
+         )
+         this.slidingWindowCounterLua=fs.readFileSync(
+            path.join(__dirname,"../scripts/sliding_window_counter.lua"),
+            "utf-8",
+         )
     } 
 
-    private getKey(identifier: string): string {
+    private getTokenBucketKey(identifier: string): string {
         return `rate_limit:${identifier}`;
     }
 
     async getBucket (identifier:string): Promise<Bucket | null> {
-        const key=this.getKey(identifier);
+        const key=this.getTokenBucketKey(identifier);
 
         const result =await this.redis.hmget(
             key,
@@ -47,7 +57,7 @@ export class RedisStore implements RateLimiterStore {
     }
 
     async saveBucket(identifier: string, bucket: Bucket) : Promise<void> {
-        const key=this.getKey(identifier);
+        const key=this.getTokenBucketKey(identifier);
 
         await this.redis.hset(
             key,
@@ -57,7 +67,7 @@ export class RedisStore implements RateLimiterStore {
     }
 
     async deleteBucket(identifier: string ): Promise<void> {
-        const key=this.getKey(identifier);
+        const key=this.getTokenBucketKey(identifier);
 
         await this.redis.del(key);
     }
@@ -65,7 +75,7 @@ export class RedisStore implements RateLimiterStore {
     async executeTokenBucket(identifier: string, capacity: number, refillRatePerSecond: number): 
     Promise<{ allowed: boolean; retryAfterMs?: number; }> {
 
-        const key=this.getKey(identifier);
+        const key=this.getTokenBucketKey(identifier);
 
         const result=await this.redis.eval(
             this.tokenBucketLua,
@@ -82,6 +92,66 @@ export class RedisStore implements RateLimiterStore {
         };
         
 
+    }
+
+
+    private getSlidingWindowLogKey(identifier:string){
+        return `sliding_window_log:${identifier}`
+    }
+
+
+    async executeSlidingWindow(identifier: string, maxRequests: number, windowSizeMs: number):
+     Promise<{ allowed: boolean; retryAfterMs?: number; }> {
+
+        const key=this.getSlidingWindowLogKey(identifier);
+
+        const result= await this.redis.eval(
+            this.slidingWindowLogLua,
+            1,
+            key,
+            maxRequests,
+            windowSizeMs,
+            Date.now(),
+
+        ) as number[];
+
+        return {
+            allowed: result[0]===1,
+            retryAfterMs : result[1],
+
+        }
+    }
+
+
+
+
+
+    private getslidingWindowCounterKey(identifier :string ){
+        return `sliding_windoww_counter_key${identifier}`;
+
+    }
+
+
+    async executeSlidingWindowCounter(identifier: string, maxRequests: number, windowSizeMs: number):
+     Promise<{ allowed: boolean; retryAfterMs?: number; }> {
+
+        const key=this.getslidingWindowCounterKey(identifier);
+
+        const result=await this.redis.eval(
+            this.slidingWindowCounterLua,
+            1,
+            key,
+            maxRequests,
+            windowSizeMs,
+            Date.now()
+        ) as number[]
+
+        return {
+            allowed: result[0]===1,
+            retryAfterMs: result[1],
+        }
+
+        
     }
 
     async ping():Promise<string> {

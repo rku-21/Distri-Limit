@@ -1,20 +1,22 @@
 import express from "express";
-import {rateLimit} from "../src"
+import dotenv from "dotenv"
+import { rateLimit } from "distrilimit";
 
-const app=express();
+dotenv.config();
+
+export const app=express();
 
 app.use(express.json());
 
-
 app.use(rateLimit({
-    strategy : "token-bucket",
-    capacity:5,
-    refillRatePerSecond : 1,
-    redis :{
-        host : "localhost",
-        port : 6379
+    strategy :"sliding-window-counter",
+    capacity: 5,
+    windowSizeMs:10000,
+    redis : {
+        host:process.env.REDIS_HOST!,
+        port:Number(process.env.REDIS_PORT)!,
     }
-}));
+}))
 
 app.listen(3000, ()=>{
     console.log("server is listening it ",3000);
