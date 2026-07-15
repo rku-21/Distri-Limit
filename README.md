@@ -2,6 +2,9 @@
 
 Distrilimit is a TypeScript rate-limiting middleware for Express. It exposes a simple `rateLimit(options)` API and lets you choose the storage backend.
 
+# Project Logo
+  <img src="image-1.png">
+
 ## Badges
 
 <p align="left">
