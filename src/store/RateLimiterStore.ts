@@ -1,36 +1,38 @@
 import { Bucket } from "../models/Bucket"
+import { RateLimitResult } from "../Interfaces/rateLimitResult";
 
 export interface RateLimiterStore {
     executeTokenBucket(
         identifier : string,
         capacity : number,
         refillRatePerSecond : number,
-    ): Promise<{
-        allowed :boolean,
-        retryAfterMs? : number,
-    }>
-    getBucket(identifier:string) : Promise<Bucket | null>;
-    saveBucket(identifier:string,bucket:Bucket) : Promise<void>;
-    deleteBucket(identifier:string) : Promise<void>;
+    ): Promise<RateLimitResult>
+   
 
     executeSlidingWindow (
         identifier:string,
         maxRequests:number,
         windowSizeMs:number,
-    ): Promise<{
-        allowed:boolean,
-        retryAfterMs? : number,
-    }>
+    ): Promise<RateLimitResult>
 
 
     executeSlidingWindowCounter (
         identifier:string ,
         maxRequests:number,
         windowSizeMs:number,
-    ): Promise<{
-        allowed:boolean,
-        retryAfterMs? :number,
-    }>
+    ): Promise<RateLimitResult>
+
+    executeFixedWindow (
+        identifier:string,
+        maxRequests:number,
+        windowSizeMs:number,
+    ): Promise<RateLimitResult>
+
+    executeLeakyBucket (
+        identifier:string,
+        capacity:number,
+        leakRatePerSecond:number
+    ): Promise<RateLimitResult>
 
 
 

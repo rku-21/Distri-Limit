@@ -42,7 +42,13 @@ local estimatedCount=curentWindowRequestCount+previousWindowRequestCount * (1-cu
  if estimatedCount>= maxRequests then 
     local retryAfterMs=windowSizeMs-elapsedTime;
 
-    return {0,retryAfterMs};
+    redis.call(
+        "PEXPIRE",
+        key,
+        windowSizeMs*2
+    )
+
+    return {0,retryAfterMs,maxRequests,0};
 end
 
 --- Allow
@@ -61,7 +67,7 @@ redis.call(
     windowSizeMs*2
 )
 
-return {1,0};
+return {1,0,maxRequests,maxRequests-estimatedCount};
 
 
 

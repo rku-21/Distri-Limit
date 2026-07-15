@@ -1,27 +1,46 @@
 import express from "express";
 import dotenv from "dotenv"
-import { rateLimit } from "distrilimit";
+import { rateLimit } from "./createRateLimit";
+import { MemoryStore } from "./store/MemoryStore";
+import { RateLimiterStore } from "./store/RateLimiterStore";
+import { RedisStore } from "./store/redisStore";
+
 
 dotenv.config();
 
-export const app=express();
+const app=express();
 
-app.use(express.json());
+app.use(
+  rateLimit({
+    strategy: "token-bucket",
+    capacity:5,
+    refillRatePerSecond: 2,
+    handler:(req,res,result)=>{
+    return res.status(429).json({
+        message:"thora dhire se",
+        retryAfterMs:result.retryAfterMs,
+        limit:result.limit,
+        remaining:result.remaining
+    })
 
-app.use(rateLimit({
-    strategy :"sliding-window-counter",
-    capacity: 5,
-    windowSizeMs:10000,
-    redis : {
-        host:process.env.REDIS_HOST!,
-        port:Number(process.env.REDIS_PORT)!,
-    }
-}))
+  }
 
-app.listen(3000, ()=>{
-    console.log("server is listening it ",3000);
+
+
+  }),
+ 
+);
+
+  app.get("/profile",(req,res)=>{
+    res.send("here is you profile user ");
+  })
+
+
+
+
+
+app.listen(3000,()=>{
+    console.log("server is listening to port 3000");
 })
 
-app.get("/profile",(req,res)=>{
-    res.send("Here is your profile user ->>>");
-})
+

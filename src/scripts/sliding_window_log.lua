@@ -34,7 +34,13 @@ if currentRequests>= maxRequests then
 
     local retryAfterMs=windowSizeMs-(currentTime- tonumber(oldestRequest[2]));
 
-    return {0,retryAfterMs};
+    redis.call(
+        "PEXPIRE",
+        key,
+        windowSizeMs
+    )
+
+    return {0,retryAfterMs,maxRequests,0};
 
 end 
 
@@ -54,5 +60,5 @@ redis.call(
      windowSizeMs
 )
 
-return {1,0};
+return {1,0,maxRequests,maxRequests-currentRequests};
 

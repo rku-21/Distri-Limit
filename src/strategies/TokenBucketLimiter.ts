@@ -1,5 +1,6 @@
 import { RateLimiterStore } from "../store/RateLimiterStore";
 import {RateLimiterStrategy} from "./RateLimiterStrategy";
+import { RateLimitResult } from "../Interfaces/rateLimitResult";
 
 export  class TokenBucketLimiter implements RateLimiterStrategy {
     constructor (
@@ -8,11 +9,7 @@ export  class TokenBucketLimiter implements RateLimiterStrategy {
         private readonly store : RateLimiterStore,
     ){}
 
-     async isAllowed(identifier: string): 
-     Promise<{ 
-        allowed: boolean; 
-        retryAterMs?: Number; 
-    }> {
+     async isAllowed(identifier: string): Promise<RateLimitResult> {
         return await this.store.executeTokenBucket(
             identifier,
             this.capacity,
